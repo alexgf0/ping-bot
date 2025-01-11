@@ -56,14 +56,20 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
   report = "Report:"
   for key, value in ping_info.items():
-    report += "\nurl:{}\n\t\tstarted tracking: {}\n\t\tlast successful ping: {}".format(key, value[0], value[1])
-  
+    report += "\nurl:\t\t{}\n\t\t\tstarted tracking:\t\t{}\n\t\t\tlast successful ping:\t\t{}".format(key, value[0], value[1])
   
   await update.message.reply_text(report)
 
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  await update.message.reply_text(
+    "Available commands:"
+      +"\n\t\t\t/report: shows a list of all the urls with the gathered ping information"
+      +"\n\t\t\t/add_url https://valid-url.com: where 'https://valid-url.com' is the url you want to add to the tracking list"
+      +"\n\t\t\t/rm_url https://valid-url.com: where 'https://valid-url.com' is the url you want to remove from the tracking list"
+    )
 
 def main():
-  token = "I'm not giving you my token"
+  token = "still not giving it to you"
   application = Application.builder().token(token).concurrent_updates(True).read_timeout(30).write_timeout(30).build()
   
   # run ping every 10 seconds
@@ -73,6 +79,7 @@ def main():
   application.add_handler(CommandHandler("add_url", add_url))
   application.add_handler(CommandHandler("rm_url", remove_url))
   application.add_handler(CommandHandler("report", report))
+  application.add_handler(CommandHandler("help", help))
   
   application.run_polling()
 
