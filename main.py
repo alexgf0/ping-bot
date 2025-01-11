@@ -4,7 +4,7 @@ import validators
 import datetime
 import requests
 
-# keep track of active chat ids (need this to send warning notifications in ping_servers)
+# keep track of active chat ids (need this to send warning notifications in ping_urls)
 active_chats = set() 
 
 # store the urls we want to ping
@@ -12,7 +12,7 @@ ping_pool = []
 # dict to save (ping start time, last successful ping) 
 ping_info = {}
 
-async def ping_servers(context: ContextTypes.DEFAULT_TYPE):
+async def ping_urls(context: ContextTypes.DEFAULT_TYPE):
   for url in ping_pool:
     res = requests.get(url)
     if res.status_code == 200:
@@ -22,7 +22,7 @@ async def ping_servers(context: ContextTypes.DEFAULT_TYPE):
       for chat_id in active_chats:
         await context.bot.send_message(chat_id=chat_id, text="ERROR for url:'{}' got response {}".format(url, res.status_code))
 
-async def add_server(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def add_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
   active_chats.add(update.effective_chat.id)
 
   for url in context.args:
@@ -37,7 +37,7 @@ async def add_server(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await update.message.reply_text("Success.\nNew list: {}".format(ping_pool))
 
 
-async def remove_server(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def remove_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
   for url in context.args:
     if url in ping_pool:
       ping_pool.remove(url)
@@ -67,14 +67,13 @@ def main():
   application = Application.builder().token(token).concurrent_updates(True).read_timeout(30).write_timeout(30).build()
   
   # run ping every 10 seconds
-  application.job_queue.run_repeating(ping_servers, interval=10, first=1)
+  application.job_queue.run_repeating(ping_urls, interval=10, first=1)
   
   # command handlers
-  application.add_handler(CommandHandler("add_server", add_server))
-  application.add_handler(CommandHandler("rm_server", remove_server))
+  application.add_handler(CommandHandler("add_url", add_url))
+  application.add_handler(CommandHandler("rm_url", remove_url))
   application.add_handler(CommandHandler("report", report))
   
-  print("Telegram Bot started!", flush=True)
   application.run_polling()
 
 
